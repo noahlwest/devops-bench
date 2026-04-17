@@ -278,15 +278,41 @@ const initCharts = () => {
         return datasets;
     };
 
-    // 2. Trend Line Chart (Accuracy)
+    const buildGroupedBarDatasets = (dataKey) => {
+        return Object.keys(agentsConfig).map(agentId => {
+            const agent = agentsConfig[agentId];
+            return {
+                label: agent.name,
+                data: timeSeriesData[agentId].map(d => d[dataKey]),
+                backgroundColor: agent.color,
+                borderRadius: 4,
+                barThickness: 'flex',
+                maxBarThickness: 16
+            };
+        });
+    };
+
+    const commonGroupedBarOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: true, position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, font: { size: 11, family: '"Roboto", sans-serif' } } }
+        },
+        scales: {
+            x: { grid: { display: false }, border: { display: false } },
+            y: { border: { display: false } }
+        }
+    };
+
+    // 2. Accuracy Bar Chart
     const trendCtx = document.getElementById('trendChart').getContext('2d');
     charts.trend = new Chart(trendCtx, {
-        type: 'line',
-        data: { labels: labels, datasets: buildDatasets('accuracy') },
+        type: 'bar',
+        data: { labels: labels, datasets: buildGroupedBarDatasets('accuracy') },
         options: {
-            ...commonLineOptions,
-            scales: { ...commonLineOptions.scales, y: { min: 50, max: 100, border: { display: false } } },
-            plugins: { ...commonLineOptions.plugins, tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%` } } }
+            ...commonGroupedBarOptions,
+            scales: { ...commonGroupedBarOptions.scales, y: { min: 50, max: 100, border: { display: false } } },
+            plugins: { ...commonGroupedBarOptions.plugins, tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%` } } }
         }
     });
 
@@ -297,8 +323,6 @@ const initCharts = () => {
         data: { labels: labels, datasets: buildDatasets('latency') },
         options: { ...commonLineOptions, plugins: { ...commonLineOptions.plugins, legend: { display: false } } }
     });
-
-
 
     // 5. Mini Chart: Manifest Score
     const manCtx = document.getElementById('manifestScoreChart').getContext('2d');
@@ -446,39 +470,31 @@ const updateTaskTableUI = () => {
 const updateCharts = (viewMode) => {
     const isSingle = viewMode !== 'all' ? viewMode : null;
 
-    const rebuildLineDatasets = (dataKey) => {
-        const datasets = [];
+    const updateGroupedBarChart = (chartInstance, dataKey) => {
         const agentsToInclude = isSingle ? [isSingle] : ['agent_gca', 'agent_no_agent'];
-
-        agentsToInclude.forEach(agentId => {
+        chartInstance.data.labels = labels; // Always use all run labels
+        chartInstance.data.datasets = agentsToInclude.map(agentId => {
             const agent = agentsConfig[agentId];
-            datasets.push({
+            return {
                 label: agent.name,
                 data: timeSeriesData[agentId].map(d => d[dataKey]),
-                borderColor: agent.color,
-                backgroundColor: isSingle ? agent.color + '20' : 'transparent',
-                pointBorderColor: agent.color,
-                fill: !!isSingle
-            });
+                backgroundColor: agent.color,
+                borderRadius: 4,
+                barThickness: 'flex',
+                maxBarThickness: 16
+            };
         });
-        return datasets;
+        chartInstance.update();
     };
 
-    charts.trend.data.datasets = rebuildLineDatasets('accuracy');
-    charts.trend.update();
-
-    charts.latency.data.datasets = rebuildLineDatasets('latency');
+    updateGroupedBarChart(charts.trend, 'accuracy');
+    charts.latency.data.datasets = buildDatasets('latency', isSingle);
     charts.latency.update();
-
-
-
-    charts.manifestScore.data.datasets = rebuildLineDatasets('manifestScore');
+    charts.manifestScore.data.datasets = buildDatasets('manifestScore', isSingle);
     charts.manifestScore.update();
-
-    charts.inputTokens.data.datasets = rebuildLineDatasets('inputTokens');
+    charts.inputTokens.data.datasets = buildDatasets('inputTokens', isSingle);
     charts.inputTokens.update();
-
-    charts.outputTokens.data.datasets = rebuildLineDatasets('outputTokens');
+    charts.outputTokens.data.datasets = buildDatasets('outputTokens', isSingle);
     charts.outputTokens.update();
 
 
