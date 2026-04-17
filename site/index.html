@@ -20,7 +20,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Agent Leaderboard Dashboard</title>
+    <title>Devops Bench for Autonomous Operations</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -78,8 +78,7 @@
                         <div class="w-2.5 h-2.5 rounded-full bg-google-yellow"></div>
                         <div class="w-2.5 h-2.5 rounded-full bg-google-green"></div>
                     </div>
-                    <h1 class="text-xl font-normal text-google-textPrimary tracking-tight">Agent Evaluation Leaderboard
-                    </h1>
+                    <h1 class="text-xl font-normal text-google-textPrimary tracking-tight">Devops Bench for Autonomous Operations</h1>
                 </div>
 
                 <div class="flex flex-wrap gap-2" id="viewSelector">
@@ -90,12 +89,12 @@
                     <button class="view-pill px-4 py-1.5 rounded-full text-sm flex items-center gap-1.5"
                         data-agent="agent_gca">
                         <div class="w-2 h-2 rounded-full bg-google-blue"></div>
-                        AGY with GCA
+                        Antigravity with GCA
                     </button>
                     <button class="view-pill px-4 py-1.5 rounded-full text-sm flex items-center gap-1.5"
                         data-agent="agent_no_agent">
                         <div class="w-2 h-2 rounded-full bg-google-red"></div>
-                        AGY with no agent
+                        Antigravity with no agent
                     </button>
                 </div>
             </div>
@@ -111,7 +110,7 @@
             <section class="bg-white p-6 shadow-sm border border-google-border rounded-xl lg:col-span-1 flex flex-col">
                 <div class="mb-4">
                     <h2 class="text-lg font-medium text-google-textPrimary">Current Standings</h2>
-                    <p class="text-xs text-google-textSecondary mt-0.5">Average overall accuracy (30d).</p>
+                    <p class="text-xs text-google-textSecondary mt-0.5">Weighted average overall accuracy (30d). Calculated from Outcome Validity (score 0-5) across runs, with later runs weighted more heavily.</p>
                 </div>
                 <div class="chart-container flex-grow">
                     <canvas id="leaderboardChart"></canvas>
@@ -145,14 +144,7 @@
                     </div>
                 </div>
 
-                <!-- Tool Score -->
-                <div class="bg-white p-5 shadow-sm border border-google-border rounded-xl flex flex-col">
-                    <h3 class="font-medium text-sm text-google-textPrimary mb-1">Tool Usage Score</h3>
-                    <p class="text-xs text-google-textSecondary mb-4">Correct tool invocation accuracy.</p>
-                    <div class="mini-chart-container">
-                        <canvas id="toolScoreChart"></canvas>
-                    </div>
-                </div>
+
 
                 <!-- Manifest Score -->
                 <div class="bg-white p-5 shadow-sm border border-google-border rounded-xl flex flex-col">
@@ -209,8 +201,11 @@
                                     class="px-3 py-4 text-right text-xs font-medium text-google-textSecondary uppercase">
                                     Overall Accuracy</th>
                                 <th scope="col"
+                                    class="px-3 py-4 text-right text-xs font-medium text-google-textSecondary uppercase">
+                                    Avg Input Tokens</th>
+                                <th scope="col"
                                     class="py-4 pl-3 pr-6 text-right text-xs font-medium text-google-textSecondary uppercase">
-                                    Cost / 1M Tokens</th>
+                                    Avg Output Tokens</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-google-border bg-white" id="configTableBody">
@@ -230,6 +225,11 @@
                         <h2 class="text-lg font-medium text-google-textPrimary">Specific Task Performance Matrix</h2>
                         <p class="text-sm text-google-textSecondary mt-1">Comparing agent pass rates and stability
                             across core evaluation tasks.</p>
+                        <div class="flex gap-4 mt-2 text-xs text-google-textSecondary">
+                            <div class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-google-green rounded-full"></span> >= 90% Success</div>
+                            <div class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-google-red rounded-full"></span> < 80% Success</div>
+                            <div class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-google-textPrimary rounded-full"></span> 80-89% Success</div>
+                        </div>
                     </div>
 
                 </div>

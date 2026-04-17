@@ -14,8 +14,8 @@
 
 // --- 1. CONFIGURATION & MOCK DATA ---
 const agentsConfig = {
-    agent_gca: { id: 'agent_gca', name: 'AGY with GCA', color: '#4285F4', baseAcc: 0, baseLat: 0, baseTool: 0, baseMan: 0, cost: 'N/A' },
-    agent_no_agent: { id: 'agent_no_agent', name: 'AGY with no agent', color: '#EA4335', baseAcc: 0, baseLat: 0, baseTool: 0, baseMan: 0, cost: 'N/A' }
+    agent_gca: { id: 'agent_gca', name: 'Antigravity with GCA', color: '#4285F4', baseAcc: 0, baseLat: 0, baseTool: 0, baseMan: 0, cost: 'N/A' },
+    agent_no_agent: { id: 'agent_no_agent', name: 'Antigravity with no agent', color: '#EA4335', baseAcc: 0, baseLat: 0, baseTool: 0, baseMan: 0, cost: 'N/A' }
 };
 
 const processEvalData = (evalDataArray) => {
@@ -178,6 +178,24 @@ const getAvgLatency = (agentId) => {
     return weightedSum / totalWeight;
 };
 
+const getAvgInputTokens = (agentId) => {
+    const data = timeSeriesData[agentId];
+    if (!data) return 0;
+    const validData = data.filter(d => d.inputTokens !== null);
+    if (validData.length === 0) return 0;
+    const sum = validData.reduce((acc, d) => acc + d.inputTokens, 0);
+    return sum / validData.length;
+};
+
+const getAvgOutputTokens = (agentId) => {
+    const data = timeSeriesData[agentId];
+    if (!data) return 0;
+    const validData = data.filter(d => d.outputTokens !== null);
+    if (validData.length === 0) return 0;
+    const sum = validData.reduce((acc, d) => acc + d.outputTokens, 0);
+    return sum / validData.length;
+};
+
 const featuresList = ['GKE', 'Storage', 'GCE', 'Vertex AI', 'AI Hypercomputer'];
 const taskMatrixData = [];
 
@@ -294,13 +312,7 @@ const initCharts = () => {
         options: { ...commonLineOptions, plugins: { ...commonLineOptions.plugins, legend: { display: false } } }
     });
 
-    // 4. Mini Chart: Tool Score
-    const toolCtx = document.getElementById('toolScoreChart').getContext('2d');
-    charts.toolScore = new Chart(toolCtx, {
-        type: 'line',
-        data: { labels: labels, datasets: buildDatasets('toolScore') },
-        options: { ...commonLineOptions, plugins: { ...commonLineOptions.plugins, legend: { display: false } } }
-    });
+
 
     // 5. Mini Chart: Manifest Score
     const manCtx = document.getElementById('manifestScoreChart').getContext('2d');
@@ -341,6 +353,8 @@ const initCharts = () => {
 
         const avgLat = getAvgLatency(config.id);
         const avgAcc = getAvgAccuracy(config.id);
+        const avgInTokens = getAvgInputTokens(config.id);
+        const avgOutTokens = getAvgOutputTokens(config.id);
 
         tr.innerHTML = `
             <td class="py-4 pl-6 pr-3 whitespace-nowrap">
@@ -351,7 +365,8 @@ const initCharts = () => {
             </td>
             <td class="px-3 py-4 whitespace-nowrap text-right text-sm text-google-textSecondary">${avgLat.toFixed(1)}s</td>
             <td class="px-3 py-4 whitespace-nowrap text-right text-sm font-medium ${avgAcc > 90 ? 'text-google-green' : 'text-google-textPrimary'}">${avgAcc.toFixed(1)}%</td>
-            <td class="py-4 pl-3 pr-6 whitespace-nowrap text-right text-sm text-google-textSecondary">${config.cost}</td>
+            <td class="px-3 py-4 whitespace-nowrap text-right text-sm text-google-textSecondary">${Math.round(avgInTokens)}</td>
+            <td class="py-4 pl-3 pr-6 whitespace-nowrap text-right text-sm text-google-textSecondary">${Math.round(avgOutTokens)}</td>
         `;
         configTbody.appendChild(tr);
     });
@@ -394,8 +409,8 @@ const updateTaskTableUI = () => {
 
     if (currentViewMode === 'all') {
         headerHTML += `
-            <th scope="col" class="px-3 py-4 text-center text-xs font-medium text-google-textSecondary uppercase tracking-wider">AGY with GCA</th>
-            <th scope="col" class="px-3 py-4 text-center text-xs font-medium text-google-textSecondary uppercase tracking-wider">AGY with no agent</th>
+            <th scope="col" class="px-3 py-4 text-center text-xs font-medium text-google-textSecondary uppercase tracking-wider">Antigravity with GCA</th>
+            <th scope="col" class="px-3 py-4 text-center text-xs font-medium text-google-textSecondary uppercase tracking-wider">Antigravity with no agent</th>
         `;
     } else {
         headerHTML += `
@@ -469,8 +484,7 @@ const updateCharts = (viewMode) => {
     charts.latency.data.datasets = rebuildLineDatasets('latency');
     charts.latency.update();
 
-    charts.toolScore.data.datasets = rebuildLineDatasets('toolScore');
-    charts.toolScore.update();
+
 
     charts.manifestScore.data.datasets = rebuildLineDatasets('manifestScore');
     charts.manifestScore.update();
