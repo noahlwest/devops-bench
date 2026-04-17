@@ -27,45 +27,29 @@ const processEvalData = (evalDataArray) => {
         return null;
     };
 
-    // First pass to find max runs per file per agent
-    const fileMaxRuns = {};
-    evalDataArray.forEach(row => {
-        const fileIdx = row.__fileIndex__ || 1;
-        const agentId = getAgentId(row["Agent Setup"]);
-        if (!agentId) return;
-        const runNum = parseInt(row["Run #"]);
-        if (!fileMaxRuns[fileIdx]) fileMaxRuns[fileIdx] = {};
-        if (!fileMaxRuns[fileIdx][agentId] || runNum > fileMaxRuns[fileIdx][agentId]) {
-            fileMaxRuns[fileIdx][agentId] = runNum;
-        }
-    });
-
-    // Compute file offsets
-    const fileOffsets = {};
-    const currentOffsets = {};
-    const fileIndices = Object.keys(fileMaxRuns).map(Number).sort((a, b) => a - b);
-    fileIndices.forEach(fileIdx => {
-        fileOffsets[fileIdx] = { ...currentOffsets };
-        for (const agentId in fileMaxRuns[fileIdx]) {
-            currentOffsets[agentId] = (currentOffsets[agentId] || 0) + fileMaxRuns[fileIdx][agentId];
-        }
-    });
+    const agentTaskCounters = {}; // Map agentId_taskNum to current run counter
 
     const accumulation = {}; 
     let maxRunNumAllAgents = 0;
 
-    // Second pass: Accumulate data with offsets
+    // Accumulate data with task-specific run counters
     evalDataArray.forEach(row => {
-        const fileIdx = row.__fileIndex__ || 1;
         const agentId = getAgentId(row["Agent Setup"]);
         if (!agentId) return;
         
-        const offset = (fileOffsets[fileIdx] && fileOffsets[fileIdx][agentId]) || 0;
-        const runNum = parseInt(row["Run #"]) + offset;
-        const key = `${agentId}_${runNum}`;
+        const taskNum = row["Task"];
+        const counterKey = `${agentId}_${taskNum}`;
+        
+        if (!agentTaskCounters[counterKey]) {
+            agentTaskCounters[counterKey] = 0;
+        }
+        agentTaskCounters[counterKey]++;
+        
+        const adjustedRunNum = agentTaskCounters[counterKey];
+        const key = `${agentId}_${adjustedRunNum}`;
 
-        if (runNum > maxRunNumAllAgents) {
-            maxRunNumAllAgents = runNum;
+        if (adjustedRunNum > maxRunNumAllAgents) {
+            maxRunNumAllAgents = adjustedRunNum;
         }
 
         if (!accumulation[key]) {
