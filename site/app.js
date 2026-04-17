@@ -228,6 +228,25 @@ const commonLineOptions = {
 
 const charts = {};
 
+const buildDatasets = (dataKey, isSingleAgentId = null) => {
+    const datasets = [];
+    const agentsToInclude = isSingleAgentId ? [isSingleAgentId] : ['agent_gca', 'agent_no_agent'];
+
+    agentsToInclude.forEach(agentId => {
+        const agent = agentsConfig[agentId];
+        datasets.push({
+            label: agent.name,
+            data: timeSeriesData[agentId].map(d => d[dataKey]),
+            borderColor: agent.color,
+            backgroundColor: isSingleAgentId ? agent.color + '20' : 'transparent',
+            pointBorderColor: agent.color,
+            fill: !!isSingleAgentId
+        });
+    });
+
+    return datasets;
+};
+
 const initCharts = () => {
     // 1. Leaderboard Bar Chart
     const leadCtx = document.getElementById('leaderboardChart').getContext('2d');
@@ -259,24 +278,7 @@ const initCharts = () => {
         }
     });
 
-    const buildDatasets = (dataKey, isSingleAgentId = null) => {
-        const datasets = [];
-        const agentsToInclude = isSingleAgentId ? [isSingleAgentId] : ['agent_gca', 'agent_no_agent'];
 
-        agentsToInclude.forEach(agentId => {
-            const agent = agentsConfig[agentId];
-            datasets.push({
-                label: agent.name,
-                data: timeSeriesData[agentId].map(d => d[dataKey]),
-                borderColor: agent.color,
-                backgroundColor: isSingleAgentId ? agent.color + '20' : 'transparent',
-                pointBorderColor: agent.color,
-                fill: !!isSingleAgentId
-            });
-        });
-
-        return datasets;
-    };
 
     const buildGroupedBarDatasets = (dataKey) => {
         return Object.keys(agentsConfig).map(agentId => {
